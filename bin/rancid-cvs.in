@@ -51,7 +51,7 @@ ENVFILE="@sysconfdir@/rancid.conf"
 
 # print a usage message to stderr
 pr_usage() {
-    echo "usage: $0 [-V] [-f config_file] [group [group ...]]" >&2;
+    echo "usage: $0 [-V] [group [group ...]]" >&2;
 }
 
 # command-line options
@@ -62,16 +62,6 @@ if [ $# -ge 1 ] ; then
 	-V)
 	    echo "@PACKAGE@ @VERSION@"
 	    exit 0
-	    ;;
-	-f)
-	    shift
-	    # next arg is the alternate config file name
-	    ENVFILE="$1"
-	    if [ -z $ENVFILE ]; then
-		pr_usage
-		exit 1
-	    fi
-	    shift
 	    ;;
 	-*)
 	    echo "unknown option: $1" >&2
@@ -97,42 +87,56 @@ cd $BASEDIR
 
 # RCS system
 RCSSYS=${RCSSYS:=cvs};
-if [ $RCSSYS != "cvs" -a $RCSSYS != "svn" -a $RCSSYS != "git" ] ; then
-    echo "$RCSSYS is not a valid value for RCSSYS. See rancid.conf(5)." >&2
-    exit 1
-fi
-
-# Top level RCS stuff
 case $RCSSYS in
-cvs )
-    if [ ! -d $CVSROOT ]; then
-	cvs -d $CVSROOT init
-    fi
-    ;;
-svn )
-    if echo "$CVSROOT" | grep -q "://"; then
-	# do nothing because CVSROOT is some sort of a URL
-	# also assume the repository has already been provisioned
-	:
-    else
-	if ! svn ls "file://$CVSROOT" >/dev/null 2>&1; then
-	    svnadmin create $CVSROOT @SVN_FSTYPE@
-	fi
-	CVSROOT="file://$CVSROOT"
-    fi
-    ;;
-git)
-    if echo "$CVSROOT" | grep -q "://"; then
-	# do nothing because CVSROOT is some sort of a URL
-	# also assume the repository has already been provisioned
-	:
-    else
-	if [ ! -d $CVSROOT ]; then
-	    mkdir $CVSROOT
-	fi
-    fi
-    ;;
+    cvs | svn )
+	# we're good
+	;;
+    git )
+	# force $CVSROOT
+	CVSROOT=$BASEDIR/.git
+	;;
+    * )
+	echo "$RCSSYS is not a valid value for RCSSYS."
+	exit 1
+	;;
 esac
+
+# Top level CVS stuff
+if [ ! -d $CVSROOT ]; then
+    case $RCSSYS in
+	cvs )
+            if [ ! -d $CVSROOT ]; then
+	        cvs -d $CVSROOT init
+            fi
+	    ;;
+	svn )
+            if echo "$CVSROOT" | grep -q "://"; then
+	        # do nothing because CVSROOT is some sort of a URL
+	        # also assume the repository has already been provisioned
+	        :
+            else
+	        if ! svn ls "file://$CVSROOT" >/dev/null 2>&1; then
+	            svnadmin create $CVSROOT @SVN_FSTYPE@
+	        fi
+	        CVSROOT="file://$CVSROOT"
+            fi
+	    ;;
+	git )
+	    # git does not use $CVSROOT, instead configs are stored in $BASEDIR
+	    (
+		flock -x 200
+		git init
+		rm -f .gitignore
+		echo "/logs" >> .gitignore
+		echo "/.lockfile" >> .gitignore
+		echo "*~" >> .gitignore
+		echo ".#*" >> .gitignore
+		echo "*.new" >> .gitignore
+		git add .gitignore
+		git commit -m "Initializing repository."
+	    ) 200>$BASEDIR/.lockfile
+    esac
+fi
 
 # Log dir
 if [ ! -d logs ]; then
@@ -149,6 +153,7 @@ fi
 
 for GROUP in `echo $LIST_OF_GROUPS` ;
 do
+
     DIR=$BASEDIR/$GROUP
 
     # Directory for the group and the configs
@@ -168,34 +173,40 @@ do
 	    cd $DIR
 	    svn update
 	    ;;
-	git )
-	    git init --bare $CVSROOT/$GROUP
-	    git clone $CVSROOT/$GROUP .
-	    git config --global user.name RANCiD
-	    git config --global user.email $USER$MAILDOMAIN
-	    git config --global push.default current
-	    ;;
+	    git )
+		cd $BASEDIR
+		echo "$GROUP/routers.all" >> .gitignore
+		echo "$GROUP/routers.down" >> .gitignore
+		echo "$GROUP/routers.up" >> .gitignore
+		echo "$GROUP/routers.mail" >> .gitignore
+		echo "$GROUP/routers.added" >> .gitignore
+		echo "$GROUP/routers.deleted" >> .gitignore
+		echo "$GROUP/routers.single" >> .gitignore
+		echo "$GROUP/routers.up.missed" >> .gitignore
+		echo "$GROUP/routers.failed" >> .gitignore
+		(
+		    flock -x 200
+		    git add .gitignore
+		    git commit -m "Update .gitignore"
+		) 200>$BASEDIR/.lockfile
+		;;
 	esac
     fi
     cd $DIR
     if [ ! -d configs ]; then
-	rm -f configs
 	mkdir configs
-	if [ $RCSSYS = "git" ]; then
-	    cat > configs/.gitignore <<EOF
-.old
-*.new
-*.raw
-EOF
-	fi
-	$RCSSYS add configs
-	$RCSSYS commit -m 'new' configs
-	if [ $RCSSYS = "git" ]; then
-	    git push
-	fi
+	case $RCSSYS in
+	    cvs | svn )
+		$RCSSYS add configs
+		$RCSSYS commit -m 'new' configs
+		;;
+	    git )
+		# nothing to be done here
+		;;
+	esac
     fi
 
-    # config and status files
+    # main files
     if [ ! -f routers.all ]; then
 	touch routers.all
     fi
@@ -207,10 +218,18 @@ EOF
     fi
     if [ ! -f router.db ]; then
 	touch router.db
-	$RCSSYS add router.db
-	$RCSSYS commit -m 'new' router.db
-	if [ $RCSSYS = "git" ]; then
-	    git push
-	fi
+	case $RCSSYS in
+	    cvs | svn )
+		$RCSSYS add router.db
+		$RCSSYS commit -m 'new' router.db
+		;;
+	    git )
+		(
+		    flock -x 200
+		    git add router.db
+		    git commit -m "Initializing $GROUP"
+		) 200>$BASEDIR/.lockfile
+		;;
+	esac
     fi
 done
