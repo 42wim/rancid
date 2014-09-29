@@ -132,7 +132,7 @@ SENDMAIL=${SENDMAIL:=sendmail};
 
 # RCS system
 RCSSYS=${RCSSYS:=cvs};
-if [ $RCSSYS != "cvs" -a $RCSSYS != "svn" -a $RCSSYS != "git" ] ; then
+if [ $RCSSYS != "cvs" -a $RCSSYS != "svn" -a $RCSSYS != "git" -a $RCSSYS != "git-remote" ] ; then
     echo "$RCSSYS is not a valid value for RCSSYS."
     exit 1
 fi
@@ -220,7 +220,7 @@ case $RCSSYS in
 	    rm -f .svnignore
 	fi
 	;;
-    git )
+    git | git-remote )
 	if [ ! -f .gitignore ]; then
 	    rm -f .gitignore
 	    create_ignore > .gitignore
@@ -247,7 +247,7 @@ case $RCSSYS in
 	fi
 	rm -f $TMP
 	;;
-    git )
+    git | git-remote )
 	# do nothing here (for now)
 	;;
 esac
@@ -374,7 +374,7 @@ if [ $RALL -ne 0 -o $RDOWN -ne 0 -o $RUP -ne 0 ] ; then
 		svn add $router
 		svn commit -m "$message" $router
 		;;
-	    git )
+	    git | git-remote )
 		(
 		    flock -x 200
 		    git add $router
@@ -423,7 +423,7 @@ for router in `cut -d\; -f1 ../routers.up` ; do
 		echo "$RCSSYS added missing router $router"
 	    fi
 	    ;;
-	git )
+	git | git-remote )
 	    git ls-files $router > /dev/null 2>&1 
 	    if [ $? -eq 1 ]; then
 		touch $router
@@ -448,7 +448,7 @@ for router in `find . \( -name \*.new -prune -o -name CVS -prune -o -name .cvsig
 		$RCSSYS delete $router
 		$RCSSYS commit -m "deleted router $router" $router
 		;;
-	    git )
+	    git | git-remote )
 		(
 		    flock -x 200
 		    git rm $router
@@ -470,7 +470,7 @@ then
 	cvs | svn )
 	    $RCSSYS commit -m "$message" router.db
 	    ;;
-	git )
+	git | git-remote )
 	    (
 		flock -x 200
 		git add router.db
@@ -599,7 +599,7 @@ case $RCSSYS in
 	svn diff | sed -e '/^+++ /d' -e 's/^\([-+ ]\)/\1 /' >$TMP.diff
 	svn commit -m "$message"
 	;;
-    git )
+    git | git-remote )
 	# with git we do things differently - first commit, then grab the diff
 	(
 	    flock -x 200
@@ -612,6 +612,12 @@ case $RCSSYS in
 	    if [ $? -eq 0 ]; then
 		# only generate a diff if the commit was successful
 		git diff --patch-with-stat HEAD^ HEAD -- . >$TMP.diff
+            if [ $RCSSYS = "git-remote" ] ; then
+                # only push to remotes if commit was successful
+                for repo in $(git remote) ; do
+                    git push ${repo}
+                done
+            fi
 	    fi
 	) 200>$BASEDIR/.lockfile
 	;;
