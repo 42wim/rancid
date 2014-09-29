@@ -1,6 +1,6 @@
 #! @PERLV_PATH@
 ##
-## $Id$
+## $Id: brancid.in 2605 2012-07-26 23:21:27Z heas $
 ## hacked version of Hank's rancid - this one tries to deal with Bay's.
 ##
 ## @PACKAGE@ @VERSION@

@@ -1,4 +1,78 @@
-3.0a3
+3.1
+	Change rancid script exec(); move cmd-line options to rancid.types.*
+	files.  This allows older scripts to function without change, ie:
+	needing to support -t.
+
+	clogin: missing variable initialization - Per-Olaf Olsson
+
+	ios.pm: filter fan speed setting on 2900, etc.
+
+	fnrancid: fix filter match for encrypted pwd
+
+	ios.pm: filter vlan traffic counters on gsr, 6400 & switches
+
+	srancid: fix up time filter for dell 3448
+
+	ios.pm: some ASAs do not support show vlan
+
+	ios.pm: bgp password filtering removing neighbor address
+
+	rancid.types.base: dell definition missing inloop configuration
+
+	rancid: display useful error if inloop is not configured
+
+	dell.pm: missing variable declarations
+
+	nxrancid: filter INTAKE temps and cycling file BufferMonitor-1HourData -
+	reported by Vincent Aniello
+
+3.0
+	add SENDMAIL variable to rancid.conf - requsted by Mariusz Kruk
+
+	nsrancid,nslogin: Fix prompt and end-of-config-markers - from Jesse
+	House confirmed by Tom Luong
+
+	ios.pm: show flash on 867VAE w/ 15.3(3)M2 produces the same output as
+	dir slotN: on "normal" ios, so filtering fials - reported by Reuben
+	Farrelly
+
+	ios.pm: change $type comparisons to eq - reported by Reuben Farrelly
+
+	junos.pm: filter MX2020 fan speed
+
+	ios.pm: update XE match for XE 3.11.00.S - Jan Rheindorf
+
+	grancid: rename to rancid, now that the IOS script is converted and
+	to reduce confusion.
+
+	rancid.pm: fix syntax error
+
+	hrancid: filter uptime from show stack - Alan McKinnon
+
+	junos.pm: filter primary/secondary on SRX - Frank Eargle
+
+	par: replace par with C version
+
+	rancid.types.conf: allow multiple module lines for device type
+
+	mrvrancid, francid: converted to perl modules
+
+	hrancid: filter uptime from show version - reported by Rikard Ekman
+
+	cloginrc: add prompt directive to workaround prompt special characters
+	in login banners.  Not supported by all scripts; just clogin, ATM.
+
+	ios.pm: filter sflog file for cisco 10k
+
+	alogin: match display private keys prompt - noted by majoosh chacko
+
+	rancid.types.conf: add jlocal example base on Serge Malev's comment
+
+	clogin: Extreme XOS >= 12.5 has a new prompt-like banner before the
+	initial prompt, ignore it to avoid confusing location of the prompt
+
+	rancid.types.base: add command show chassis hardware models
+
 	nxrancid: filter Fan Zone Speed
 
 	ios.pm: reverse logic of whether to 'show vlan', skip VTP clients

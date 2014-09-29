@@ -1,6 +1,6 @@
 #! @EXPECT_PATH@ --
 ##
-## $Id$
+## $Id: nlogin.in 2719 2013-07-30 12:44:34Z heas $
 ##
 ## @PACKAGE@ @VERSION@
 ## Copyright (c) @COPYYEARS@ by Terrapin Communications, Inc.

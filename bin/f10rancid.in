@@ -1,6 +1,6 @@
 #! @PERLV_PATH@
 ##
-## $Id$
+## $Id: f10rancid.in 2720 2013-08-01 13:26:30Z heas $
 ##
 ## @PACKAGE@ @VERSION@
 ## Copyright (c) @COPYYEARS@ by Terrapin Communications, Inc.

@@ -1,8 +1,8 @@
 .\"
-.\" $Id$
+.\" $Id: rancid.types.conf.5.in 2812 2014-04-02 00:59:29Z heas $
 .\"
 .hys 50
-.TH "rancid.types.conf" "5" "24 October 2012"
+.TH "rancid.types.conf" "5" "12 February 2014"
 .SH NAME
 rancid.types.conf \- rancid device type configuration file
 .SH DESCRIPTION
@@ -73,7 +73,7 @@ process the input.
 .TP
 .B inloop
 Intended for
-.IR grancid(1),
+.IR rancid(1),
 .B inloop
 defines a function to loop over the input from the device.
 .TP
@@ -85,16 +85,14 @@ be an FQPN, but then must be found in the path.
 Loads a rancid perl module to supply functions used in the
 .B command
 directives for the <device_type>.
+Multiple module lines may exist for a device type, they are loaded in the
+order they appear.
 .TP
 .B script
 Defines the rancid script used for the <device_type>, which does not need to
 be an FQPN, but then must be found in the path.
 .\"
 .PP
-Each device_type must at least have a 
-.SH ERRORS
-Omitted fields or syntax errors are likely to cause perl compilation errors,
-or collection to fail or be incomplete.
 .SH FILES
 .Bl -tag -width @sysconfdir@/rancid.types.conf -compact
 .TP

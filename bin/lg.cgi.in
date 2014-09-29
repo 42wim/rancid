@@ -1,6 +1,6 @@
 #! @PERLV_PATH@
 ##
-## $Id$
+## $Id: lg.cgi.in 2616 2012-08-15 21:46:51Z heas $
 ##
 ## @PACKAGE@ @VERSION@
 ## Copyright (c) @COPYYEARS@ by Terrapin Communications, Inc.

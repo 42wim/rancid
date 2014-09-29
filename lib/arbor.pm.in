@@ -1,6 +1,6 @@
 package arbor;
 ##
-## $Id$
+## $Id: arbor.pm.in 2632 2012-10-22 20:08:26Z heas $
 ##
 ## @PACKAGE@ @VERSION@
 ## Copyright (c) @COPYYEARS@ by Terrapin Communications, Inc.

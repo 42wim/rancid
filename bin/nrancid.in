@@ -1,6 +1,6 @@
 #! @PERLV_PATH@
 ##
-## $Id$
+## $Id: nrancid.in 2671 2013-03-13 06:18:50Z heas $
 ##
 ## @PACKAGE@ @VERSION@
 ## Copyright (c) @COPYYEARS@ by Terrapin Communications, Inc.

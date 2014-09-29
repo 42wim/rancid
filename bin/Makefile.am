@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 ## A Makefile.in is supplied, in case you do not have automake.
 
-## $Id$
+## $Id: Makefile.am 2813 2014-04-03 04:34:53Z heas $
 ##
 ## Copyright (c) 1997-2013 by Terrapin Communications, Inc.
 ## All rights reserved.
@@ -11,17 +11,17 @@
 #AUTOMAKE_OPTIONS=foreign no-dependencies
 AUTOMAKE_OPTIONS=foreign
 
-bin_PROGRAMS = hpuifilter
+bin_PROGRAMS = hpuifilter par
 bin_SCRIPTS = agmrancid alogin anlogin anrancid arancid arrancid atrancid \
 	avologin avorancid blogin brancid cat5rancid clogin complogin \
-	control_rancid cssrancid elogin erancid f5rancid f10rancid flogin \
-	fnlogin fnrancid francid grancid hlogin hrancid htlogin htrancid \
-	jerancid jlogin mrancid mrvlogin mrvrancid mtlogin mtrancid \
-	nlogin nrancid nslogin nsrancid nxrancid par prancid rivlogin \
+	control_rancid cssrancid dllogin elogin erancid f5rancid f10rancid \
+	flogin fnlogin fnrancid hlogin hrancid htlogin \
+	htrancid jerancid jlogin mrancid mrvlogin mtlogin mtrancid \
+	nlogin nrancid nslogin nsrancid nxrancid prancid rancid rivlogin \
 	rivrancid rrancid srancid tlogin tntlogin tntrancid trancid xilogin \
 	xirancid xrancid zrancid
-# XXX hack for the grancid to get pkglibdir, see corresponding XXX below
-bin_in = grancid.in
+# XXX hack for the rancid to get pkglibdir, see corresponding XXX below
+bin_in = rancid.in
 
 bin_SCRIPTS += lg.cgi lgform.cgi rancid-cvs rancid-fe rancid-run
 EXTRA_DIST= lg.cgi.in lgform.cgi.in rancid-cvs.in rancid-fe.in rancid-run.in \
@@ -32,6 +32,7 @@ CLEANFILES= lg.cgi lgform.cgi rancid-cvs rancid-fe rancid-run
 #CLEANFILES= $(bin_SCRIPTS)
 
 hpuifilter_SOURCES = hpuifilter.c
+par_SOURCES = par.c
 
 #CPPFLAGS += @PG_CPPFLAGS@
 #INCLUDES += -I$(top_srcdir)/include @PG_CPPFLAGS@
@@ -68,6 +69,7 @@ auto_edit = sed \
 	-e 's,@MAILPLUS\@,$(MAILPLUS),g' \
 	-e 's,@PACKAGE\@,$(PACKAGE),g' \
 	-e 's,@SVN_FSTYPE\@,$(SVN_FSTYPE),g' \
+	-e 's,@SENDMAIL\@,$(SENDMAIL),g' \
 	-e 's,@VERSION\@,$(VERSION),g' \
 	-e 's,@COPYYEARS\@,$(COPYYEARS),g'
 
@@ -81,7 +83,7 @@ $(bin_in:%.in=%): Makefile $(top_builddir)/config.status
 	mv $@.tmp $@
 # XXX there must be a better way to produce these dependencies, perhaps in
 #     configure.
-grancid: $(srcdir)/grancid.in
+rancid: $(srcdir)/rancid.in
 
 lg.cgi: Makefile $(srcdir)/lg.cgi.in
 	rm -f lg.cgi lg.cgi.tmp; \

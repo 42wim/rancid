@@ -2,6 +2,10 @@ Rancid is a "Really Awesome New Cisco confIg Differ" developed to
 maintain CVS controlled copies of router configs.
 
 *** The Following Information is Very Important ****
+Rancid 3.0 converts several device scripts (the remaining will follow) to
+libraries used by the single script, named rancid, to parse device output.
+It also requires perl 5.10 minimum.
+
 Rancid 2.3 introduces a new directory layout.  It has been changed to more
 closely follow the standard path hierarchy, which is defined by the FHS
 standard and autoconf, and/or make these locations more easily configurable
@@ -41,7 +45,7 @@ bin/
 			Builds router list, calls rancid on each router and
 			handles cvs routines.
 	hpuifilter.c	HP procurve login filter - see hlogin(1).
-	par.in		Parallel processing of commands - any commands.
+	par.c		Parallel processing of commands - any commands.
 	rancid-cvs.in	Creates all of the CVS and config directories.
 	rancid-run.in	Script designed to be run from cron.
 	rancid-fe.in	Chooses between rancid/[abefhjrx]rancid/cat5rancid.
@@ -58,7 +62,6 @@ bin/
 	f5rancid.in	Version of rancid.in for F5 BigIPs.
 	fnrancid.in	Version of rancid.in for Fortinet Firewalls.
 	francid.in	Version of rancid.in for Foundry switches.
-	grancid.in	Version of rancid.in that is generic w/ specific libs.
 	hrancid.in	Version of rancid.in for HP Procurve switches.
 	htrancid.in	Version of rancid.in for Hitatchi routers.
 	jerancid.in	Version of rancid.in for Juniper E-series routers.
@@ -114,7 +117,7 @@ cvs		Code revision system available from prep.ai.mit.edu:/pub/gnu
 gnudiff		gnudiff provides the uni-diff (-u) option.  If you do not have
 		a diff that supports -u, configure will set-up rancid to use
 		'diff -c' or 'diff -C'.
-perl5		perl version 5 or greater available from www.cpan.org
+perl5		perl version 5.10 or greater available from www.cpan.org
 expect		http://expect.nist.gov/  We highly suggest that you stick to
 		expect 5.24.1 (or so).  This seems to work best.  Note that
 		you need to have the accompanying tcl &/ tk.
@@ -216,12 +219,12 @@ Quick Installation Guide (an example):
    IOS) code.
 
    e.g.: <localstatedir>/<group>/router.db:
-	cisco-router.domain.com:cisco:up
-	adc-mux.domain.com:ezt3:up
-	foundry-switch-router.domain.com:foundry:up
-	juniper-router.domain.com:juniper:up
-	redback-dsl-router.domain.com:redback:down
-	extreme-switch.domain.com:extreme:down
+	cisco-router.domain.com;cisco;up
+	adc-mux.domain.com;ezt3;up
+	foundry-switch-router.domain.com;foundry;up
+	juniper-router.domain.com;juniper;up
+	redback-dsl-router.domain.com;redback;down
+	extreme-switch.domain.com;extreme;down
 
 9) For first-time users or new installations, run bin/rancid-run (with no
    arguments) and check the resulting log file(s) (in logs/*) for errors.

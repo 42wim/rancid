@@ -1,6 +1,6 @@
 #! @EXPECT_PATH@ --
 ##
-## $Id$
+## $Id: alogin.in 2752 2013-11-01 22:01:49Z heas $
 ##
 ## @PACKAGE@ @VERSION@
 ## Copyright (c) @COPYYEARS@ by Terrapin Communications, Inc.
@@ -451,6 +451,10 @@ proc run_commands { prompt command } {
 	    -re "^\[^\n\r]*$reprompt"		{}
 	    -re "^\[^\n\r ]*>>.*$reprompt"	{ exp_continue }
 	    -re "\[\n\r]+"			{ exp_continue }
+	    -re "^\*Display private keys? \[y/n]:" {
+						 send "y\r"
+						 exp_continue
+						}
 	}
     }
     send "exit\r"

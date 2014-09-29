@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 ## A Makefile.in is supplied, in case you do not have automake.
 
-## $Id$
+## $Id: Makefile.am 2481 2012-05-24 17:39:33Z heas $
 ##
 ## Copyright (c) 1997-2013 by Terrapin Communications, Inc.
 ## All rights reserved.
@@ -10,15 +10,18 @@
 
 AUTOMAKE_OPTIONS=foreign no-dependencies
 
-pkglib_SCRIPTS = rancid.pm arbor.pm eos.pm ios.pm iosxr.pm junos.pm
-pkglib_in = $(pkglib_SCRIPTS:%=%.in)
+my_pkglibdir = $(pkglibdir)
+my_pkglib_DATA = rancid.pm arbor.pm dell.pm eos.pm foundry.pm ios.pm iosxr.pm \
+		 junos.pm mrv.pm
+pkglib_in = $(my_pkglib_DATA:%=%.in)
+
 RANLIB= :
 
 EXTRA_DIST= $(pkglib_in)
 ##dist_bin_SCRIPTS= $(bin_SCRIPTS:%=%.in)
 
 CLEANFILES= rancid
-CLEANFILES+= $(pkglib_SCRIPTS)
+CLEANFILES+= $(my_pkglib_DATA)
 
 #clean:
 #	rm -f Makefile env $(BIN_DATAS) $(BIN_PROGS)
@@ -52,8 +55,11 @@ $(pkglib_in:%.in=%): Makefile $(top_builddir)/config.status
 # XXX there must be a better way to produce these dependencies, perhaps in
 #     configure.
 arbor.pm: arbor.pm.in
+dell.pm: dell.pm.in
 eos.pm: eos.pm.in
+foundry.pm: foundry.pm.in
 ios.pm: ios.pm.in
 iosxr.pm: iosxr.pm.in
 junos.pm: junos.pm.in
 rancid.pm: rancid.pm.in
+mrv.pm: mrv.pm.in
