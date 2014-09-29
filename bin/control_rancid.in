@@ -378,13 +378,18 @@ if [ $RALL -ne 0 -o $RDOWN -ne 0 -o $RUP -ne 0 ] ; then
 		(
 		    flock -x 200
 		    git add $router
-		    git commit -m "$message"
+		    echo $message >> $TMP.git
 		) 200>$BASEDIR/.lockfile
 		;;
 	esac
 	echo "Added $router"
     done
-    echo
+    case $RCSSYS in
+        git | git-remote ) 
+            git commit -F $TMP.git
+            rm -f $TMP.git
+        ;;
+    esac
     cd $DIR
 
 fi
@@ -452,6 +457,7 @@ for router in `find . \( -name \*.new -prune -o -name CVS -prune -o -name .cvsig
 		(
 		    flock -x 200
 		    git rm $router
+		    echo "deleted router $router" >> $TMP.git
 		    git commit -m "deleted router $router"
 		) 200>$BASEDIR/.lockfile
 		;;
@@ -459,6 +465,12 @@ for router in `find . \( -name \*.new -prune -o -name CVS -prune -o -name .cvsig
 	echo "Deleted $router"
     fi
 done
+case $RCSSYS in
+    git | git-remote ) 
+        git commit -F $TMP.git
+        rm -f $TMP.git
+    ;;
+esac
 cd $DIR
 
 # no routers, empty list or all 'down'
