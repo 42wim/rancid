@@ -1,46 +1,9 @@
 #! @EXPECT_PATH@ --
 ##
-## $Id: alogin.in 3022 2015-01-13 20:00:00Z heas $
+## $Id: alogin.in 3519 2016-12-01 00:23:58Z heas $
 ##
 ## @PACKAGE@ @VERSION@
-## Copyright (c) @COPYYEARS@ by Terrapin Communications, Inc.
-## All rights reserved.
-##
-## This code is derived from software contributed to and maintained by
-## Terrapin Communications, Inc. by Henry Kilmer, John Heasley, Andrew Partan,
-## Pete Whiting, Austin Schutz, and Andrew Fort.
-##
-## Redistribution and use in source and binary forms, with or without
-## modification, are permitted provided that the following conditions
-## are met:
-## 1. Redistributions of source code must retain the above copyright
-##    notice, this list of conditions and the following disclaimer.
-## 2. Redistributions in binary form must reproduce the above copyright
-##    notice, this list of conditions and the following disclaimer in the
-##    documentation and/or other materials provided with the distribution.
-## 3. All advertising materials mentioning features or use of this software
-##    must display the following acknowledgement:
-##        This product includes software developed by Terrapin Communications,
-##        Inc. and its contributors for RANCID.
-## 4. Neither the name of Terrapin Communications, Inc. nor the names of its
-##    contributors may be used to endorse or promote products derived from
-##    this software without specific prior written permission.
-## 5. It is requested that non-binding fixes and modifications be contributed
-##    back to Terrapin Communications, Inc.
-##
-## THIS SOFTWARE IS PROVIDED BY Terrapin Communications, INC. AND CONTRIBUTORS
-## ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-## TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-## PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COMPANY OR CONTRIBUTORS
-## BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-## CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-## SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-## INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-## CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-## ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-## POSSIBILITY OF SUCH DAMAGE.
-#
-# The login expect scripts were based on Erik Sherk's gwtn, by permission.
+@copyright@
 #
 # alogin - Alteon WebOS switch login
 #
@@ -323,7 +286,10 @@ proc login { router user userpswd passwd prompt cmethod cyphertype } {
             if {"$port" != ""} {
                 set cmd "$cmd -p $port"
             }
-	    set retval [ catch {eval spawn [split "$cmd -c $cyphertype -x -l $user $router" { }]} reason ]
+	    if {"$cyphertype" != ""} {
+		set cmd "$cmd -c $cyphertype"
+	    }
+	    set retval [ catch {eval spawn [split "$cmd -x -l $user $router" { }]} reason ]
 	    if { $retval } {
 		send_user "\nError: $cmd failed: $reason\n"
 		return 1
@@ -343,17 +309,19 @@ proc login { router user userpswd passwd prompt cmethod cyphertype } {
     # This helps cleanup each expect clause.
     expect_after {
 	timeout {
+	    global in_proc
 	    send_user "\nError: TIMEOUT reached\n"
 	    catch {close}; catch {wait};
-	    if { $in_proc} {
+	    if {$in_proc} {
 		return 1
 	    } else {
 		continue
 	    }
 	} eof {
+	    global in_proc
 	    send_user "\nError: EOF received\n"
 	    catch {close}; catch {wait};
-	    if { $in_proc} {
+	    if {$in_proc} {
 		return 1
 	    } else {
 		continue
@@ -379,23 +347,36 @@ proc login { router user userpswd passwd prompt cmethod cyphertype } {
 	    expect eof
 	    send_user "\nError: Unknown host\n"; wait; return 1
 	}
-	-re "(Host key not found |The authenticity of host .* be established).* \\(yes/no\\)\\?" {
-	    send "yes\r"
-	    send_user "\nHost $router added to the list of known hosts.\n"
-	    exp_continue }
-	-re "HOST IDENTIFICATION HAS CHANGED.* \\(yes/no\\)\\?" {
-	    send "no\r"
+	-re "(Host key not found |The authenticity of host .* be established)" {
+	    expect {
+		-re "\\(yes\/no\\)\\?"	{ send "yes\r";
+					  send_user "\nHost $router added to the list of known hosts.\n"
+					 }
+		-re "\[^\r\n]*\[\r\n]+"	{ exp_continue; }
+	    }
+	    exp_continue
+	}
+	-re "HOST IDENTIFICATION HAS CHANGED" {
 	    send_user "\nError: The host key for $router has changed.  Update the SSH known_hosts file accordingly.\n"
+	    expect {
+		-re "\\(yes\/no\\)\\?"	{ send "no\r" }
+		-re " strict checking\.\[\r\n]+" { }
+		-re "\[^\r\n]*\[\r\n]+"	{ exp_continue; }
+	    }
+	    catch {close}; catch {wait};
 	    return 1
 	}
-	-re "HOST IDENTIFICATION HAS CHANGED\[^\n\r]+" {
-	    send_user "\nError: The host key for $router has changed.  Update the SSH known_hosts file accordingly.\n"
-	    return 1
-	}
-	-re "Offending key for .* \\(yes/no\\)\\?" {
-	    send "no\r"
+	-re "Offending key for " {
 	    send_user "\nError: host key mismatch for $router.  Update the SSH known_hosts file accordingly.\n"
+	    expect {
+		-re "\\(yes\/no\\)\\?"	{ send "no\r" }
+		-re "\[^\r\n]*\[\r\n]+"	{ exp_continue; }
+	    }
+	    catch {close}; catch {wait};
 	    return 1
+	}
+	-nocase -re "^warning: remote host denied authentication agent forwarding." {
+	    exp_continue;
 	}
 	-re "NOTICE:\[^\n\r]* - display now \[^\n\r]*:" {
 	    send "no\r"
@@ -419,13 +400,20 @@ proc login { router user userpswd passwd prompt cmethod cyphertype } {
 					  send "y\r"
 					  exp_continue
 					}
+	-re "^Select Command Line Interface mode\[^:]*:" {
+					  send "ibmnos-cli\r"
+					  exp_continue
+					}
 	"Password incorrect"	{ send_user "\nError: Check your password for $router\n";
 				  catch {close}; catch {wait}; return 1 }
 	-re "$prompt"	{ break; }
+	-re "Warning: Remote host denied" {
+			  exp_continue
+			}
 	denied		{ send_user "\nError: Check your passwd for $router\n"
 			  catch {close}; catch {wait}; return 1
 			}
-	"\r\n"		{ exp_continue; }
+	-re "\[^\r\n]*\[\r\n]+"		{ exp_continue; }
     }
   }
     set in_proc 0
@@ -456,9 +444,13 @@ proc run_commands { prompt command } {
 	    -re "^\[^\n\r]*$reprompt"		{}
 	    -re "^\[^\n\r ]*>>.*$reprompt"	{ exp_continue }
 	    -re "\[\n\r]+"			{ exp_continue }
-	    -re "^\*Display private keys? \[y/n]:" {
-						 send "y\r"
-						 exp_continue
+	    -re "Display private keys"		{
+						  if { "$cmethod" == "ssh" } {
+						    send "y\r"
+						  } else {
+						    send "n\r"
+						  }
+						  exp_continue
 						}
 	}
     }
@@ -548,7 +540,6 @@ foreach router [lrange $argv $i end] {
       set cyphertype $cypher
     } else {
       set cyphertype [find cyphertype $router]
-      if { "$cyphertype" == "" } { set cyphertype "3des" }
     }
 
     # Figure out connection method

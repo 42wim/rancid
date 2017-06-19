@@ -1,11 +1,11 @@
-.\" $Id: par.1 2791 2014-01-27 18:27:32Z heas $
+.\" $Id: par.1 3492 2016-11-11 01:38:58Z heas $
 .hys 50
-.TH "par" "1" "15 January 2014"
+.TH "par" "1" "10 November 2016"
 .SH NAME
 par \- parallel command processing
 .SH SYNOPSIS
 .B par
-[\fB\-defiqx\fP]
+[\fB\-FHdefiqx\fP]
 [\c
 .BI \-c\ 
 command]
@@ -26,11 +26,15 @@ with a colon (:) or a pound-sign (#).  If a colon, the remainder of the
 line is a command to run for each of the subsequent lines.  If a pound-sign,
 then each subsequent line is a (self-contained) command, unless the
 .B \-c
-option was specified, in which case it operates as if the argument to
+option was specified, in which case the lines become the arguments replacing
+the braces ({}s) in the
 .B \-c
-had followed a colon on the first line.
+argument.
 .PP
-In each of the cases where the lines of the file following the first are
+The input file may also be specified on stdin, in the format as previously
+described.
+.PP
+In each of the cases where the lines of the file, following the first, are
 not commands (ie: colon or -c), instances of open-close braces ({}) in the
 command will be replaced by these values.
 .PP
@@ -60,6 +64,14 @@ will produce the following output (order will vary):
 .PP
 The command-line options are as follows:
 .PP
+.TP
+.B \-F
+Omit the footer that normally follows the output of each job.
+.\"
+.TP
+.B \-H
+Omit the header that normally precedes the output of each job.
+.\"
 .TP
 .B \-c
 Command to be run on each of the arguments following the command-line
@@ -136,3 +148,22 @@ epoch and N is the par process number ([0..]).
 .SH "HISTORY"
 .B par
 was ported from the perl version.
+It differs in the following manner:
+.sp
+.TP
+A)
+If
+.B par
+receives a HUP/INT/TERM/QUIT signal, it does not print the commands that
+will not be run.
+.sp
+.TP
+B)
+If
+.B par
+received a HUP/INT/TERM/QUIT signal, it does not exit immediately after
+sending kill to running jobs.  it waits for them to exit so that they are
+cleaned-up properly.
+If a second signal is received, it dies immediately.
+.El
+

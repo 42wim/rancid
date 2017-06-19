@@ -1,18 +1,14 @@
 ## Process this file with automake to produce Makefile.in
 ## A Makefile.in is supplied, in case you do not have automake.
 
-## $Id: Makefile.am 2997 2014-12-30 19:20:07Z heas $
+## $Id: Makefile.am 3589 2017-01-10 21:08:47Z heas $
 ##
-## Copyright (c) 1997-2015 by Terrapin Communications, Inc.
-## All rights reserved.
-##
-## Please see the file COPYING for the text of the license.
 
 #AUTOMAKE_OPTIONS=foreign no-dependencies
 AUTOMAKE_OPTIONS=foreign
 
 sysconf_DATA= rancid.types.base
-pkgdata_nogen = 
+pkgdata_nogen = rancid.types.conf
 pkgdata_gen = lg.conf.sample rancid.conf.sample
 pkgdata_DATA = $(pkgdata_nogen) $(pkgdata_gen)
 
